@@ -143,7 +143,10 @@ export function buildAppiumTestCases() {
       expectedOutcome: index % 5 === 0 ? 'failure' : 'validation-error',
       expectedMessage: index % 5 === 0 ? 'authentication failed' : 'invalid',
     });
-  });
+  } // FIX: The `for` loop on line 132 was closed with `});` instead of `}`.
+    // The `);` part had no matching opener (the object literal and `push()` call
+    // were already closed on the line above), which caused
+    // `SyntaxError: Unexpected token ')'` at line 146.
 
   testCases.push(...extendedCases);
   return testCases.slice(0, 300);
