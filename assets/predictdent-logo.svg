@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title>PredictDent AI logo</title>
+  <defs>
+    <linearGradient id="network" x1="34" y1="220" x2="214" y2="35" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#07558b"/><stop offset="1" stop-color="#58c8bd"/>
+    </linearGradient>
+    <linearGradient id="arrow" x1="55" y1="201" x2="218" y2="47" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#064a84"/><stop offset=".52" stop-color="#0878a7"/><stop offset="1" stop-color="#4bc5bd"/>
+    </linearGradient>
+  </defs>
+  <!-- interlocking clinical data network -->
+  <g fill="none" stroke="url(#network)" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M66 83 97 65l31 18v36l-31 18-31-18z"/>
+    <path d="m128 47 31-18 31 18v36l-31 18-31-18z"/>
+    <path d="m128 155 31-18 31 18v36l-31 18-31-18z"/>
+    <path d="m66 155 31-18 31 18v36l-31 18-31-18z"/>
+    <path d="m35 101 31-18 31 18v36l-31 18-31-18z"/>
+    <path d="m159 101 31-18 31 18v36l-31 18-31-18z"/>
+  </g>
+  <g fill="url(#network)">
+    <circle cx="66" cy="83" r="8"/><circle cx="97" cy="65" r="8"/><circle cx="128" cy="47" r="8"/>
+    <circle cx="159" cy="29" r="8"/><circle cx="190" cy="47" r="8"/><circle cx="35" cy="101" r="8"/>
+    <circle cx="35" cy="137" r="8"/><circle cx="66" cy="155" r="8"/><circle cx="66" cy="191" r="8"/>
+    <circle cx="97" cy="209" r="8"/><circle cx="128" cy="227" r="8"/><circle cx="159" cy="209" r="8"/>
+    <circle cx="190" cy="191" r="8"/><circle cx="221" cy="173" r="8"/><circle cx="221" cy="137" r="8"/>
+    <circle cx="190" cy="119" r="8"/>
+  </g>
+  <!-- dental-spine motifs -->
+  <g fill="#27869c">
+    <path d="M121 70c4-5 10-5 14 0l3 5-3 4-4-2-3 3-3-3-4 2-3-4z"/>
+    <path d="M117 86c6-4 16-4 22 0l-2 6h-18z"/><path d="M117 98c6-4 16-4 22 0l-2 6h-18z"/>
+    <path d="M117 110c6-4 16-4 22 0l-2 6h-18z"/><path d="M121 122c4-4 10-4 14 0l-2 7h-10z"/>
+    <path d="M152 160c4-5 10-5 14 0l3 5-3 4-4-2-3 3-3-3-4 2-3-4z"/>
+    <path d="M148 176c6-4 16-4 22 0l-2 6h-18z"/><path d="M148 188c6-4 16-4 22 0l-2 6h-18z"/>
+  </g>
+  <!-- ascending clinical insight arrow -->
+  <path fill="url(#arrow)" d="m31 194 62-65 28 27 71-85-9 41 42-37-16 57-42 37 10-37-55 66-29-28-43 45z"/>
+  <path fill="#f7ffff" opacity=".94" d="m53 191 40-42 28 27 71-85-5 23-66 79-28-27-34 36z"/>
+</svg>

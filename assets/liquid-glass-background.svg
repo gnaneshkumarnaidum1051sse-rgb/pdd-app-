@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="base" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f7f2ff"/><stop offset=".5" stop-color="#ebe5ff"/><stop offset="1" stop-color="#fbf6ff"/></linearGradient>
+    <radialGradient id="a"><stop stop-color="#c5a6ff" stop-opacity=".62"/><stop offset="1" stop-color="#c5a6ff" stop-opacity="0"/></radialGradient>
+    <radialGradient id="b"><stop stop-color="#ad98ef" stop-opacity=".5"/><stop offset="1" stop-color="#ad98ef" stop-opacity="0"/></radialGradient>
+    <radialGradient id="c"><stop stop-color="#e3c2ff" stop-opacity=".5"/><stop offset="1" stop-color="#e3c2ff" stop-opacity="0"/></radialGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="28"/></filter>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#base)"/>
+  <circle cx="180" cy="130" r="400" fill="url(#a)" filter="url(#blur)"/>
+  <circle cx="1430" cy="170" r="360" fill="url(#b)" filter="url(#blur)"/>
+  <circle cx="1040" cy="920" r="430" fill="url(#c)" filter="url(#blur)"/>
+  <path d="M-80 620C240 465 420 790 710 660s330-360 665-260c126 38 217 120 305 197v403H-80Z" fill="#fff" fill-opacity=".22"/>
+  <path d="M70 96C330 24 518 134 634 288s378 183 620 51" fill="none" stroke="#fff" stroke-opacity=".48" stroke-width="2"/>
+</svg>

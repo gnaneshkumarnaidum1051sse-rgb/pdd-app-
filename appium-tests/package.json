@@ -1,0 +1,15 @@
+{
+  "name": "appium-tests",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node ./tests/login-tests.js",
+    "generate-summary": "node ./generate-summary.js"
+  },
+  "dependencies": {
+    "appium": "^2.0.0",
+    "exceljs": "^4.3.0",
+    "selenium-webdriver": "^4.15.0"
+  }
+}

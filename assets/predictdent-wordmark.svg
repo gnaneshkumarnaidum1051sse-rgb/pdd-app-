@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 180" role="img" aria-labelledby="title">
+  <title>PredictDent AI</title>
+  <defs>
+    <linearGradient id="a" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#174b7a"/><stop offset="1" stop-color="#4bb7aa"/></linearGradient>
+  </defs>
+  <g transform="translate(18 18)">
+    <g fill="none" stroke="url(#a)" stroke-width="9" stroke-linejoin="round"><path d="m33 19 26-15 26 15v31L59 65 33 50z"/><path d="m59 82 26-15 26 15v31l-26 15-26-15z"/><path d="m7 82 26-15 26 15v31l-26 15-26-15z"/></g>
+    <g fill="none" stroke="#315d78" stroke-width="7" stroke-linecap="round"><path d="M71 37v42M62 45h18m-18 12h18m-18 12h18"/></g>
+    <path fill="url(#a)" d="m12 116 48-48 18 18 44-56-6 28 27-24-10 36-27 24 7-24-35 44-18-18-32 32z"/>
+  </g>
+  <text x="178" y="92" fill="#19324a" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="61" font-weight="750" letter-spacing="-2">PredictDent</text>
+  <text x="181" y="130" fill="#087f83" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="22" font-weight="700" letter-spacing="5">AI ANALYTICS</text>
+</svg>

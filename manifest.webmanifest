@@ -1,0 +1,22 @@
+{
+  "name": "PredictDent AI Analytics",
+  "short_name": "PredictDent",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "browser"],
+  "orientation": "portrait",
+  "background_color": "#f2f0ff",
+  "theme_color": "#8451e8",
+  "description": "Secure medical report storage and patient prediction workspace.",
+  "categories": ["medical", "productivity", "health"],
+  "icons": [
+    {
+      "src": "./assets/predictdent-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

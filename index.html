@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="PredictDent AI — Clinical intelligence platform for dental practices." />
+  <title>PredictDent AI — Clinical Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+</head>
+<body>
+
+<!-- ═══════════════ AUTH SHELL ═══════════════ -->
+<section id="auth-shell" class="auth-shell">
+  <div class="auth-card">
+    <div class="auth-logo-row">
+      <img class="logo-mark" src="./assets/predictdent-logo.svg" alt="PredictDent AI logo" />
+      <span class="auth-brand">PredictDent AI</span>
+    </div>
+    <h1 id="auth-title">Welcome back</h1>
+    <p id="auth-copy" class="auth-copy">Sign in to access your clinical analytics workspace.</p>
+    <p id="auth-notice" class="auth-notice" role="status"></p>
+    <form id="auth-form" class="auth-form">
+      <div id="signup-fields" class="hidden">
+        <div class="field-group">
+          <label class="field-label" for="signup-name">Full name</label>
+          <input id="signup-name" class="field-input" autocomplete="name" placeholder="Dr. Alex Morgan">
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="signup-phone">Phone number</label>
+          <input id="signup-phone" class="field-input" type="tel" placeholder="+91 98765 43210">
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="email">Email address</label>
+        <input id="email" class="field-input" type="email" autocomplete="email" placeholder="doctor@clinic.com" required>
+      </div>
+      <div id="password-row" class="field-group">
+        <label class="field-label" for="password">Password</label>
+        <input id="password" class="field-input" type="password" autocomplete="current-password" placeholder="At least 6 characters" required minlength="6">
+      </div>
+      <button id="auth-submit" class="btn-primary" type="submit">Sign in</button>
+    </form>
+    <p id="auth-switch" class="auth-switch">
+      New to PredictDent? <button class="link-btn" data-auth-mode="signup">Create account</button>
+      <button class="link-btn" data-auth-mode="reset">Forgot password?</button>
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════ MAIN APP ═══════════════ -->
+<div id="app" class="app hidden">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <img class="logo-mark" src="./assets/predictdent-logo.svg" alt="PredictDent logo" />
+      <span class="sidebar-brand">PredictDent</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-view="home">
+        <span class="nav-icon-wrap">⌂</span>
+        <span>Home</span>
+      </button>
+      <button class="nav-item" data-view="patients">
+        <span class="nav-icon-wrap">👥</span>
+        <span>Patients</span>
+      </button>
+      <button class="nav-item" data-view="scan">
+        <span class="nav-icon-wrap">⬆</span>
+        <span>Scan Report</span>
+      </button>
+      <button class="nav-item" data-view="predictions">
+        <span class="nav-icon-wrap">📊</span>
+        <span>Predictions</span>
+      </button>
+      <button class="nav-item" data-view="profile">
+        <span class="nav-icon-wrap">👤</span>
+        <span>Profile</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sync-pill">✓ Firebase Sync Active</div>
+      <p class="sidebar-tagline">Clinical intelligence, thoughtfully designed.</p>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <div class="main-area">
+
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="topbar-title-block">
+        <h1 id="page-title" class="page-title">Dashboard</h1>
+        <p id="page-subtitle" class="page-subtitle">Dental practice insights and patient risk dashboard</p>
+      </div>
+      <div class="topbar-right">
+        <button class="topbar-btn" aria-label="Notifications">🔔</button>
+        <button class="topbar-avatar-btn" data-view="profile">
+          <div id="header-avatar" class="topbar-avatar">D</div>
+          <div class="topbar-user-info">
+            <span id="header-user" class="topbar-user-name">Dr. Alex</span>
+            <span class="topbar-user-role">Clinician</span>
+          </div>
+        </button>
+      </div>
+    </header>
+
+    <!-- ── HOME ── -->
+    <section id="home" class="view">
+
+      <!-- Hero row -->
+      <div class="home-hero-row">
+        <div class="hero-text-block">
+          <p class="hero-greeting-line">Good morning,</p>
+          <h2 id="user-greeting" class="hero-greeting-name">Dr. Alex Morgan</h2>
+          <p class="hero-sub">Your patients and AI-powered clinical insights are all right here.</p>
+          <button class="btn-primary hero-cta" data-view="scan">⬆ Start an analysis</button>
+        </div>
+        <div class="hero-banner-card">
+          <div class="hero-banner-text">
+            <h3>Healthy smiles,<br>smarter care.</h3>
+            <p>Scan medical reports &amp; X-rays<br>for instant prognosis.</p>
+            <button class="hero-banner-btn" data-view="scan">Start an analysis →</button>
+          </div>
+          <div class="hero-bag-art">
+            <div class="bag-body">
+              <div class="bag-cross-h"></div>
+              <div class="bag-cross-v"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stat Cards -->
+      <div class="stats-row">
+        <div class="stat-card stat-blue">
+          <div class="stat-icon-box">👥</div>
+          <div>
+            <div id="patient-count" class="stat-value">0</div>
+            <div class="stat-label">Total Patients</div>
+          </div>
+        </div>
+        <div class="stat-card stat-teal">
+          <div class="stat-icon-box">📋</div>
+          <div>
+            <div id="scan-count" class="stat-value">0</div>
+            <div class="stat-label">Reports Scanned</div>
+          </div>
+        </div>
+        <div class="stat-card stat-cyan">
+          <div class="stat-icon-box">📊</div>
+          <div>
+            <div id="prediction-count" class="stat-value">0</div>
+            <div class="stat-label">Predictions Made</div>
+          </div>
+        </div>
+        <div class="stat-card stat-red">
+          <div class="stat-icon-box">⚠</div>
+          <div>
+            <div id="risk-count" class="stat-value">0</div>
+            <div class="stat-label">High Risk Cases</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lower grid -->
+      <div class="home-grid">
+        <div class="home-col-left">
+
+          <!-- Quick services -->
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Quick Services</h3>
+              <button class="link-btn" data-view="patients">View all</button>
+            </div>
+            <div class="quick-grid">
+              <button class="quick-card" data-view="scan">
+                <div class="quick-icon quick-blue">⬆</div>
+                <span>New Scan</span>
+              </button>
+              <button class="quick-card" data-view="patients">
+                <div class="quick-icon quick-teal">👥</div>
+                <span>Patients</span>
+              </button>
+              <button class="quick-card" data-view="predictions">
+                <div class="quick-icon quick-cyan">🛡</div>
+                <span>Predictions</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="home-col-right">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Recent Reports</h3>
+              <button class="link-btn" data-view="predictions">See all</button>
+            </div>
+            <div id="home-recent-reports" class="recent-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PATIENTS ── -->
+    <section id="patients" class="view hidden">
+      <div class="view-toolbar">
+        <div class="search-wrap">
+          <span class="search-icon-txt">🔍</span>
+          <input id="patient-search" class="search-input" type="search" placeholder="Search patients or reports…">
+        </div>
+        <button id="create-patient" class="btn-primary">+ Add Patient</button>
+      </div>
+      <div id="patient-list" class="patient-table"></div>
+    </section>
+
+    <!-- ── SCAN ── -->
+    <section id="scan" class="view hidden">
+      <div class="scan-layout">
+        <div class="scan-upload-card">
+          <div class="upload-cloud-icon">☁</div>
+          <h2>Upload Medical Report</h2>
+          <p>Scanned medical reports only: PDF, JPG, or PNG</p>
+          <label for="scan-file-input" class="btn-primary scan-select-btn">
+            ⬆ SELECT REPORT
+            <input id="scan-file-input" type="file" accept="application/pdf,image/jpeg,image/png" style="display:none">
+          </label>
+          <p class="scan-note">After selection, the medical report is scanned securely and the prediction result opens automatically.</p>
+        </div>
+        <div class="scan-info-side">
+          <div class="scan-info-card">
+            <div class="scan-info-icon si-teal">🛡</div>
+            <div>
+              <h3>Secure &amp; Private</h3>
+              <p>All reports are encrypted end-to-end and stored securely in Firebase.</p>
+            </div>
+          </div>
+          <div class="scan-info-card">
+            <div class="scan-info-icon si-blue">📊</div>
+            <div>
+              <h3>AI Prediction</h3>
+              <p>Implant survival score and risk analysis generated instantly.</p>
+            </div>
+          </div>
+          <div class="scan-info-card">
+            <div class="scan-info-icon si-cyan">📄</div>
+            <div>
+              <h3>Full Report PDF</h3>
+              <p>Download a complete diagnostic PDF after each analysis.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PREDICTIONS ── -->
+    <section id="predictions" class="view hidden">
+      <div class="predictions-layout">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Prediction History</h3>
+            <span id="predictions-scan-count-badge" class="badge-teal">0 scans</span>
+          </div>
+          <div id="history-list" class="pred-list"></div>
+        </div>
+        <div class="panel risk-panel">
+          <h3 class="risk-panel-title">Risk Analysis</h3>
+          <div id="reports-analyzed" class="risk-big-num">0</div>
+          <div class="risk-big-lbl">Reports Analyzed</div>
+          <div class="risk-chips-row">
+            <div class="risk-chip rchip-low">
+              <div class="rchip-check">✓</div>
+              <div>
+                <div id="low-risk-count" class="rchip-num">0</div>
+                <div class="rchip-lbl">Low Risk</div>
+              </div>
+            </div>
+            <div class="risk-chip rchip-high">
+              <div class="rchip-check">⚠</div>
+              <div>
+                <div id="high-risk-count" class="rchip-num">0</div>
+                <div class="rchip-lbl">High Risk</div>
+              </div>
+            </div>
+          </div>
+          <div class="latest-score-block">
+            <div class="latest-score-lbl">Latest survival score</div>
+            <div id="latest-score" class="latest-score-val">—</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PROFILE ── -->
+    <section id="profile" class="view hidden">
+      <div class="profile-layout">
+
+        <div class="profile-banner">
+          <div id="profile-avatar" class="profile-big-av">DA</div>
+          <div class="profile-banner-info">
+            <h2 id="profile-name">Dr. Alex Morgan</h2>
+            <p id="profile-specialty">Implant Dentistry</p>
+            <span class="verified-chip">✓ Verified Clinician</span>
+          </div>
+          <button id="logout" class="btn-logout">→ Sign Out</button>
+        </div>
+
+        <div class="profile-body">
+          <form id="profile-form" class="panel">
+            <h3 class="panel-section-title">Clinician Details</h3>
+            <div class="profile-grid">
+              <div class="field-group">
+                <label class="field-label" for="profile-full-name">Full name</label>
+                <input id="profile-full-name" class="field-input" required placeholder="Dr. Alex Morgan">
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="profile-email-input">Email address</label>
+                <input id="profile-email-input" class="field-input" type="email" placeholder="doctor@clinic.com">
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="profile-phone-input">Phone number</label>
+                <input id="profile-phone-input" class="field-input" type="tel" placeholder="+91 98765 43210">
+              </div>
+              <div class="field-group">
+                <label class="field-label" for="profile-spec-input">Specialty</label>
+                <input id="profile-spec-input" class="field-input" placeholder="Implant Dentistry">
+              </div>
+            </div>
+            <button class="btn-primary" type="submit" style="max-width:200px;margin-top:8px">Save Details</button>
+          </form>
+
+          <div class="panel sync-card">
+            <div class="sync-icon">☁</div>
+            <div>
+              <h4>Firebase Sync Active</h4>
+              <p>Scanned medical records are saved securely and synced across devices.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </div><!-- /main-area -->
+</div><!-- /app -->
+
+<!-- ═══════════════ MODALS ═══════════════ -->
+<div id="patient-evaluation" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <span class="modal-brand"><img class="logo-mark sm" src="./assets/predictdent-logo.svg" alt="" /> PredictDent AI</span>
+      <button class="modal-close" data-close="patient-evaluation">✕</button>
+    </div>
+    <h2 class="modal-title">Model Evaluation</h2>
+    <p id="detail-patient" class="modal-sub">Patient: —</p>
+    <span class="prognosis-chip">Prognosis: Solid</span>
+
+    <div class="eval-section">
+      <h4>Implant Survival Predictions</h4>
+      <div class="ring-grid">
+        <div class="ring" style="--v:96"><div class="ring-inner"><b>96%</b><span>5 yrs</span></div></div>
+        <div class="ring" style="--v:79"><div class="ring-inner"><b>79%</b><span>10 yrs</span></div></div>
+        <div class="ring" style="--v:60"><div class="ring-inner"><b>60%</b><span>15 yrs</span></div></div>
+        <div class="ring" style="--v:40"><div class="ring-inner"><b>40%</b><span>20 yrs</span></div></div>
+      </div>
+    </div>
+
+    <div class="modal-data-row">
+      <div class="modal-data-box">Risk Score<b id="detail-risk">Low Risk</b></div>
+      <div class="modal-data-box">Survival Score<b id="detail-success">98%</b></div>
+    </div>
+
+    <button id="detail-report" class="btn-primary" style="width:100%;margin-top:18px">Generate Diagnostic Report</button>
+    <button class="btn-outline detail-return" data-close="patient-evaluation" style="width:100%;margin-top:10px">Return to Dashboard</button>
+  </div>
+</div>
+
+<div id="patient-modal" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>Create Patient Record</h3>
+      <button class="modal-close" data-close="patient-modal">✕</button>
+    </div>
+    <form id="patient-form" style="display:grid;gap:16px;margin-top:20px">
+      <div class="field-group">
+        <label class="field-label" for="patient-name">Patient name</label>
+        <input id="patient-name" class="field-input" required placeholder="Jane Doe">
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="patient-age">Age</label>
+        <input id="patient-age" class="field-input" type="number" min="1" max="120" required placeholder="35">
+      </div>
+      <button class="btn-primary" type="submit">Save Patient</button>
+    </form>
+  </div>
+</div>
+
+<script type="module" src="./app.js"></script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", async () => {
+      const registration = await navigator.serviceWorker.register("./service-worker.js", { updateViaCache: "none" });
+      registration.update();
+    });
+  }
+</script>
+</body>
+</html>
