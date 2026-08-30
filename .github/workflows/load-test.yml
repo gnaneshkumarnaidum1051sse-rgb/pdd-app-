@@ -1,0 +1,95 @@
+﻿name: API Load Testing (k6)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Trigger: any push that touches backend or load-test files, plus manual dispatch
+# ─────────────────────────────────────────────────────────────────────────────
+on:
+  push:
+    paths:
+      - 'backend/**'
+      - 'load-tests/**'
+      - '.github/workflows/load-test.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'load-tests/**'
+  workflow_dispatch:
+    inputs:
+      backend_url:
+        description: 'Backend URL to target (leave blank to use production URL)'
+        required: false
+        default: ''
+
+jobs:
+  # ───────────────────────────────────────────────────────────────────────────
+  # k6 load test
+  # ───────────────────────────────────────────────────────────────────────────
+  load-test:
+    name: Baseline Load Test — 100 VUs × 1 min
+    runs-on: ubuntu-latest
+
+    env:
+      # Use manual input if provided, otherwise fall back to the secret / default
+      BACKEND_URL: ${{ github.event.inputs.backend_url || secrets.BACKEND_URL || 'https://pdd-app.onrender.com' }}
+
+    steps:
+      # ── 1. Checkout ────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Setup Node.js (for the summary parser) ──────────────────────────
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ── 3. Install k6 ─────────────────────────────────────────────────────
+      - name: Install k6
+        uses: grafana/setup-k6-action@v1
+
+      # ── 4. Verify backend is reachable before hammering it ─────────────────
+      - name: Verify backend health endpoint
+        run: |
+          echo "Target: $BACKEND_URL/api/health"
+          STATUS=$(curl -o /dev/null -s -w "%{http_code}" --max-time 15 "$BACKEND_URL/api/health" || echo "000")
+          if [ "$STATUS" = "200" ]; then
+            echo "✅ Backend is healthy (HTTP $STATUS)"
+          else
+            echo "⚠️  Backend responded with HTTP $STATUS — proceeding anyway (may be cold start)"
+          fi
+
+      # ── 5. Run k6 load test ────────────────────────────────────────────────
+      - name: Run k6 — 100 VUs × 1 minute
+        run: |
+          k6 run \
+            --summary-export=load-tests/summary.json \
+            --out json=load-tests/k6-raw.json \
+            -e BACKEND_URL="$BACKEND_URL" \
+            load-tests/k6-load-test.js
+        # Allow the step to continue even if thresholds fail so the parser
+        # still runs and publishes the report. The overall job will still
+        # surface the failure via the exit-code gate step below.
+        continue-on-error: true
+        id: k6_run
+
+      # ── 6. Parse results and write to Step Summary ─────────────────────────
+      - name: Parse k6 summary → Step Summary
+        run: node load-tests/parseK6Summary.js load-tests/summary.json
+
+      # ── 7. Upload raw artifacts ────────────────────────────────────────────
+      - name: Upload load-test artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-test-results-${{ github.run_number }}
+          path: |
+            load-tests/summary.json
+            load-tests/k6-raw.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+      # ── 8. Gate: fail the job if k6 thresholds were breached ──────────────
+      - name: Enforce threshold gate
+        if: steps.k6_run.outcome == 'failure'
+        run: |
+          echo "❌ k6 thresholds were breached. Check the Step Summary for details."
+          exit 1

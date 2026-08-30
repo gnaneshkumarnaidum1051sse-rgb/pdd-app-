@@ -1,0 +1,15 @@
+{
+  "name": "brainbattle-load-tests",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node load-test.js",
+    "k6:run": "k6 run --summary-export=summary.json -e BACKEND_URL=http://localhost:3001 k6-load-test.js",
+    "parse-summary": "node parseK6Summary.js summary.json"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "express": "^4.21.2"
+  }
+}

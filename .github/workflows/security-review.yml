@@ -167,7 +167,12 @@ jobs:
         run: |
           echo "### Test Execution and Analysis Summary :rocket:" >> $GITHUB_STEP_SUMMARY
           echo "The E2E testing pipelines and documentation generation have executed successfully." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Backend Discovery**: Completed" >> $GITHUB_STEP_SUMMARY
           echo "- **Selenium Tests**: Generated 300+ Web test cases" >> $GITHUB_STEP_SUMMARY
           echo "- **Appium Tests**: Generated 300+ App test cases" >> $GITHUB_STEP_SUMMARY
           echo "- **Dependency Scan**: Completed dependency audit logs" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "📈 **Load Testing** is handled by the separate **API Load Testing (k6)** workflow." >> $GITHUB_STEP_SUMMARY
+          echo "Trigger it manually or push to \`backend/**\` / \`load-tests/**\` to see RPS & latency metrics." >> $GITHUB_STEP_SUMMARY
