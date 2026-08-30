@@ -31,7 +31,9 @@ async function requireUser(req, res, next) {
 }
 
 function analysisResult(source) {
-  return { caseId: `PD-${Date.now().toString().slice(-6)}`, source, score: 98, healingScore: 100, boneHealth: "98% · Type II Density", risk: "Low Risk", status: "Optimal", timeline: [74, 81, 94, 97, 98], disclaimer: "Demo clinical-analysis output. A qualified clinician must verify all report values before diagnosis." };
+  const score = Math.floor(Math.random() * (99 - 70 + 1)) + 70; // 70–99
+  const risk = score >= 85 ? "Low Risk" : "High Risk";
+  return { caseId: `PD-${Date.now().toString().slice(-6)}`, source, score, healingScore: Math.min(100, score + 2), boneHealth: `${score}% · Type II Density`, risk, status: score >= 85 ? "Optimal" : "Needs Attention", timeline: [Math.max(0,score-24), Math.max(0,score-17), Math.max(0,score-6), score-1, score], disclaimer: "Demo clinical-analysis output. A qualified clinician must verify all report values before diagnosis." };
 }
 
 app.get("/api/health", (_, res) => res.json({ ok: true, service: "PredictDent API" }));

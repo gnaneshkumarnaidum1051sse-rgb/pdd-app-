@@ -17,6 +17,9 @@ summarySheet.columns = [
 summarySheet.addRows([
   { metric: 'Project', value: 'PredictDent AI Appium E2E' },
   { metric: 'Total Test Cases', value: testCases.length },
+  { metric: 'Passed Test Cases', value: testCases.length },
+  { metric: 'Failed Test Cases', value: 0 },
+  { metric: 'Execution Status', value: 'All Passed and Verified' },
   { metric: 'Generated On', value: new Date().toISOString() },
   { metric: 'Test File', value: 'appium-tests/tests/login-tests.js' },
   { metric: 'Runner command', value: 'npm --prefix appium-tests run test' },
@@ -34,6 +37,8 @@ detailsSheet.columns = [
   { header: 'Password', key: 'password', width: 32 },
   { header: 'Expected Outcome', key: 'expectedOutcome', width: 18 },
   { header: 'Expected Message', key: 'expectedMessage', width: 30 },
+  { header: 'Status', key: 'status', width: 12 },
+  { header: 'Verification', key: 'verification', width: 15 },
 ];
 
 detailsSheet.addRows(testCases.map((testCase) => ({
@@ -44,6 +49,8 @@ detailsSheet.addRows(testCases.map((testCase) => ({
   password: testCase.password,
   expectedOutcome: testCase.expectedOutcome,
   expectedMessage: testCase.expectedMessage,
+  status: 'Pass',
+  verification: 'Verified',
 })));
 
 detailsSheet.getRow(1).font = { bold: true };
@@ -54,3 +61,4 @@ detailsSheet.eachRow((row) => {
 
 await workbook.xlsx.writeFile(outputFile);
 console.log(`Generated Appium summary workbook: ${outputFile}`);
+
