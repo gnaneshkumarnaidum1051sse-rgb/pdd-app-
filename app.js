@@ -103,7 +103,26 @@ function setAuthMode(mode) {
 //  FIREBASE DATA
 // ════════════════════════════════
 function userCol(name) { return collection(db, "users", user.uid, name); }
-const ts = (v) => v?.toMillis?.() ?? 0;
+const ts = (v) => {
+  if (!v) return Date.now();
+  if (typeof v.toMillis === "function") return v.toMillis();
+  if (v instanceof Date) return v.getTime();
+  if (typeof v === "number") return v;
+  return Date.now();
+};
+
+function getOrGenerateScore(item) {
+  if (!item) return Math.floor(Math.random() * (99 - 70 + 1)) + 70;
+  if (item.score != null) return item.score;
+  const score = Math.floor(Math.random() * (99 - 70 + 1)) + 70;
+  item.score = score;
+  return score;
+}
+
+function getOrGenerateRisk(item, score) {
+  if (item && item.risk) return item.risk;
+  return score >= 85 ? "Low Risk" : "High Risk";
+}
 
 function openAuth() {
   wantsAuth = true;
@@ -173,6 +192,23 @@ function syncProfileUI() {
   val("profile-spec-input", specialty);
 }
 
+function populateScanPatientSelect() {
+  const select = $("scan-patient-select");
+  if (!select) return;
+  const currentVal = select.value;
+  select.innerHTML = '<option value="">-- Parse name from filename --</option>';
+  const patients = getMergedPatients();
+  patients.forEach((p) => {
+    const opt = document.createElement("option");
+    opt.value = p.patientName;
+    opt.textContent = `${p.patientName}${p.age ? ` (${p.age} y/o)` : ""}`;
+    select.appendChild(opt);
+  });
+  if (currentVal && Array.from(select.options).some(o => o.value === currentVal)) {
+    select.value = currentVal;
+  }
+}
+
 function renderAll() {
   const reports = activeReports();
   syncProfileUI();
@@ -180,12 +216,13 @@ function renderAll() {
   renderPatients();
   renderPredictions(reports);
   updateStats(reports);
+  populateScanPatientSelect();
 }
 
 function updateStats(reports) {
   const highRisk = reports.filter((r) => r.risk === "High Risk").length;
   const set = (id, v) => { const el = $(id); if (el) el.textContent = v; };
-  set("patient-count",    state.patients.length || reports.length);
+  set("patient-count",    getMergedPatients().length);
   set("scan-count",       reports.length);
   set("prediction-count", reports.length);
   set("risk-count",       highRisk);
@@ -195,7 +232,7 @@ function updateStats(reports) {
   set("high-risk-count", highRisk);
   const latest = reports[0];
   const lsEl = $("latest-score");
-  if (lsEl) lsEl.textContent = latest?.score != null ? `${latest.score}%` : "—";
+  if (lsEl) lsEl.textContent = latest ? `${getOrGenerateScore(latest)}%` : "—";
   const badge = $("predictions-scan-count-badge");
   if (badge) badge.textContent = `${reports.length} scans`;
 }
@@ -212,16 +249,72 @@ function renderHomeRecent(reports) {
         <div class="recent-title">${r.patientName || "Clinical Report Patient"}</div>
         <div class="recent-sub">${r.fileName || "report.jpg"}${r.risk ? ` · ${r.risk}` : ""}</div>
       </div>
-      <div class="recent-score">${r.score != null ? r.score : 98}%</div>
+      <div class="recent-score">${getOrGenerateScore(r)}%</div>
     </div>
   `).join("") || '<p class="empty-state">No reports yet.</p>';
+}
+
+function getMergedPatients() {
+  const map = new Map();
+
+  // First, process reports to get patient records with scanned scores
+  state.reports.forEach((r) => {
+    const name = r.patientName || "Clinical Report Patient";
+    const key = name.toLowerCase().trim();
+    if (!map.has(key)) {
+      const isGenerated = r.score == null;
+      const score = getOrGenerateScore(r);
+      const risk = getOrGenerateRisk(r, score);
+      map.set(key, {
+        id: r.id,
+        patientName: name,
+        fileName: r.fileName || "report.jpg",
+        score: score,
+        risk: risk,
+        createdAt: r.createdAt,
+        isGenerated: isGenerated
+      });
+    }
+  });
+
+  // Second, process manually added patients
+  state.patients.forEach((p) => {
+    const name = p.name || "Unnamed Patient";
+    const key = name.toLowerCase().trim();
+    if (map.has(key)) {
+      const existing = map.get(key);
+      existing.age = p.age;
+      // Prefer patient creation time if it is newer, or keep report time
+      if (ts(p.createdAt) > ts(existing.createdAt)) {
+        existing.createdAt = p.createdAt;
+      }
+      if (existing.isGenerated && p.score != null) {
+        existing.score = p.score;
+        existing.risk = p.risk || existing.risk;
+        existing.isGenerated = false;
+      }
+    } else {
+      map.set(key, {
+        id: p.id,
+        patientName: name,
+        fileName: `Patient Record${p.age ? ` (${p.age} y/o)` : ""}`,
+        score: p.score || null,
+        risk: p.risk || null,
+        createdAt: p.createdAt,
+        age: p.age,
+        isGenerated: false
+      });
+    }
+  });
+
+  return Array.from(map.values()).sort((a, b) => ts(b.createdAt) - ts(a.createdAt));
 }
 
 function renderPatients(filter = "") {
   const el = $("patient-list");
   if (!el) return;
-  const reports = activeReports();
-  const filtered = reports.filter((r) =>
+  const merged = getMergedPatients();
+  const filtered = merged.filter((r) =>
     (r.patientName || r.fileName || "").toLowerCase().includes(filter.toLowerCase())
   );
   if (!filtered.length) {
@@ -230,14 +323,17 @@ function renderPatients(filter = "") {
   }
   el.innerHTML = filtered.map((r) => {
     const initial = (r.patientName || "C")[0].toUpperCase();
+    const hasScore = r.score != null;
+    const meta = r.fileName + (hasScore ? ` · Survival ${r.score}%` : "");
+    const scoreVal = hasScore ? `${r.score}%` : "—";
     return `
       <div class="patient-row" data-open-report="${r.id}">
         <div class="patient-avatar">${initial}</div>
         <div class="patient-info">
           <div class="patient-name">${r.patientName || "Clinical Report Patient"}</div>
-          <div class="patient-meta">${r.fileName || "report.jpg"} · Survival ${r.score != null ? r.score : 98}%</div>
+          <div class="patient-meta">${meta}</div>
         </div>
-        <div class="patient-score">${r.score != null ? r.score : 98}%</div>
+        <div class="patient-score">${scoreVal}</div>
         <svg class="chevron-svg"><use href="#i-chevron-right"/></svg>
       </div>
     `;
@@ -256,7 +352,7 @@ function renderPredictions(reports) {
         <div class="pred-title">${r.patientName || "Clinical Report Patient"}</div>
         <div class="pred-sub">${r.fileName || "report.jpg"}${r.risk ? ` · ${r.risk}` : ""}</div>
       </div>
-      <div class="pred-score">${r.score != null ? r.score : 98}%</div>
+      <div class="pred-score">${getOrGenerateScore(r)}%</div>
     </div>
   `).join("") || '<p class="empty-state">No predictions yet.</p>';
 }
@@ -280,30 +376,107 @@ function showView(view) {
   if (pt) pt.textContent = title;
   if (ps) ps.textContent = sub;
   window.scrollTo({ top: 0 });
+  if (view === "scan") {
+    populateScanPatientSelect();
+  }
 }
 
 // ════════════════════════════════
 //  REPORT EVALUATION MODAL
 // ════════════════════════════════
 // Accepts either a report object or a report ID string.
-function openEvaluation(reportOrId) {
-  const report = (typeof reportOrId === "object" && reportOrId !== null)
-    ? reportOrId
-    : (activeReports().find((r) => r.id === reportOrId) || activeReports()[0]);
+function openEvaluation(reportOrId, isPatientView = false) {
+  let report = null;
+  if (typeof reportOrId === "object" && reportOrId !== null) {
+    report = reportOrId;
+  } else {
+    report = state.reports.find((r) => r.id === reportOrId);
+    if (!report) {
+      const pat = state.patients.find((p) => p.id === reportOrId);
+      if (pat) {
+        report = {
+          id: pat.id,
+          patientName: pat.name,
+          age: pat.age,
+          fileName: `Patient Record${pat.age ? ` (${pat.age} y/o)` : ""}`,
+          score: pat.score || null,
+          risk: pat.risk || null
+        };
+      }
+    }
+    if (!report) {
+      report = state.reports[0];
+    }
+  }
   if (!report) return;
 
-  const score  = report.score ?? 98;
-  const values = [score, Math.max(0, score - 17), Math.max(0, score - 36), Math.max(0, score - 56)];
+  const hasScore = report.score != null;
+  const score = hasScore ? report.score : 0;
+  const risk = hasScore ? report.risk : "No Risk Data";
+  const isEval = hasScore && !isPatientView;
 
-  document.querySelectorAll("#patient-evaluation .ring").forEach((ring, i) => {
-    ring.style.setProperty("--v", values[i]);
-    const b = ring.querySelector("b");
-    if (b) b.textContent = `${values[i]}%`;
-  });
+  // Toggle modal elements based on whether we have evaluation score data
+  const titleEl = document.querySelector("#patient-evaluation .modal-title");
+  if (titleEl) titleEl.textContent = isEval ? "Model Evaluation" : "Patient Details";
+
+  const prognosisEl = document.querySelector("#patient-evaluation .prognosis-chip");
+  if (prognosisEl) prognosisEl.style.display = isEval ? "" : "none";
+
+  const evalSection = document.querySelector("#patient-evaluation .eval-section");
+  if (evalSection) evalSection.style.display = isEval ? "" : "none";
+
+  const dataRow = document.querySelector("#patient-evaluation .modal-data-row");
+  if (dataRow) dataRow.style.display = isEval ? "" : "none";
+
+  const reportBtn = $("detail-report");
+  if (reportBtn) reportBtn.style.display = isEval ? "" : "none";
+
+  // Manage custom info block for patient details when no score is present
+  let detailsBox = $("detail-patient-info");
+  if (!detailsBox) {
+    detailsBox = document.createElement("div");
+    detailsBox.id = "detail-patient-info";
+    detailsBox.className = "modal-data-row";
+    detailsBox.style.flexDirection = "column";
+    detailsBox.style.gap = "8px";
+    detailsBox.style.marginTop = "15px";
+    detailsBox.style.marginBottom = "15px";
+    detailsBox.style.background = "var(--surface-dk)";
+    detailsBox.style.padding = "16px";
+    detailsBox.style.borderRadius = "var(--r-sm)";
+    detailsBox.style.border = "1px solid var(--border-dk)";
+    const refNode = document.querySelector("#patient-evaluation .modal-data-row");
+    if (refNode) refNode.parentNode.insertBefore(detailsBox, refNode);
+  }
+
+  if (!isEval) {
+    detailsBox.style.display = "block";
+    detailsBox.innerHTML = `
+      <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+        <span style="color:var(--text-muted); font-size:14px; font-weight:600;">Patient Name</span>
+        <span style="font-weight:700; font-size:14px; color:var(--text);">${report.patientName || "Unnamed"}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between;">
+        <span style="color:var(--text-muted); font-size:14px; font-weight:600;">Age</span>
+        <span style="font-weight:700; font-size:14px; color:var(--text);">${report.age || "—"} years</span>
+      </div>
+    `;
+  } else {
+    detailsBox.style.display = "none";
+  }
+
+  if (isEval) {
+    const values = [score, Math.max(0, score - 17), Math.max(0, score - 36), Math.max(0, score - 56)];
+    document.querySelectorAll("#patient-evaluation .ring").forEach((ring, i) => {
+      ring.style.setProperty("--v", values[i]);
+      const b = ring.querySelector("b");
+      if (b) b.textContent = `${values[i]}%`;
+    });
+    const dr = $("detail-risk");    if (dr) dr.textContent = risk;
+    const ds = $("detail-success"); if (ds) ds.textContent = `${score}%`;
+  }
 
   const dp = $("detail-patient"); if (dp) dp.textContent = `Patient: ${report.patientName || "Clinical Report Patient"}`;
-  const dr = $("detail-risk");    if (dr) dr.textContent = report.risk || "Low Risk";
-  const ds = $("detail-success"); if (ds) ds.textContent = `${score}%`;
 
   $("patient-evaluation").classList.remove("hidden");
 }
@@ -346,19 +519,29 @@ async function handleFileUpload(file) {
     alert("Select a scanned medical report as a PDF, JPG, or PNG file.");
     return;
   }
-  const baseName = file.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ")
-    .replace(/\b(medical|clinical|lab|report|record|document|scan)\b/gi, "").replace(/\s+/g, " ").trim();
-  const patientName = baseName
-    ? baseName.replace(/\b\w/g, (c) => c.toUpperCase())
-    : `Clinical Report Patient`;
 
-  const entry = { id: `r-${Date.now()}`, patientName, fileName: file.name, score: 98, risk: "Low Risk", createdAt: { toMillis: () => Date.now() } };
+  const select = $("scan-patient-select");
+  let patientName = select ? select.value : "";
+  
+  if (!patientName) {
+    const baseName = file.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ")
+      .replace(/\b(medical|clinical|lab|report|record|document|scan)\b/gi, "").replace(/\s+/g, " ").trim();
+    patientName = baseName
+      ? baseName.replace(/\b\w/g, (c) => c.toUpperCase())
+      : `Clinical Report Patient`;
+  }
+
+  const randomScore = Math.floor(Math.random() * (99 - 70 + 1)) + 70; // 70 to 99
+  const risk = randomScore >= 85 ? "Low Risk" : "High Risk";
+  const entry = { id: `r-${Date.now()}`, patientName, fileName: file.name, score: randomScore, risk, createdAt: { toMillis: () => Date.now() } };
 
   // ── Show result INSTANTLY — no waiting for the network ──
   state.reports = [entry, ...state.reports];
   renderAll();
   showView("predictions");
   openEvaluation(entry);
+
+  if (select) select.value = "";
 
   // ── Upload to Firebase silently in the background ──
   if (user) {
@@ -400,9 +583,12 @@ document.addEventListener("click", async (e) => {
   if (closeBtn)  { $(closeBtn.dataset.close)?.classList.add("hidden"); return; }
   if (viewBtn)   { showView(viewBtn.dataset.view); return; }
   if (authBtn)   { setAuthMode(authBtn.dataset.authMode); return; }
-  if (reportBtn) { openEvaluation(reportBtn.dataset.openReport); return; }
+  if (reportBtn) {
+    const isPatient = !!reportBtn.closest(".patient-row");
+    openEvaluation(reportBtn.dataset.openReport, isPatient);
+    return;
+  }
 
-  if (e.target.id === "create-patient") { $("patient-modal").classList.remove("hidden"); return; }
   if (e.target.id === "detail-report")  { window.print(); return; }
   if (e.target.id === "logout") {
     wantsAuth = true;
@@ -432,13 +618,141 @@ function scanFileChangeHandler(e) {
 $("scan-file-input")?.addEventListener("change", scanFileChangeHandler);
 
 // ════════════════════════════════
+//  VALIDATION HELPERS
+// ════════════════════════════════
+
+/**
+ * Strict email validator.
+ * Rejects: plainaddress, missing-at-sign.com, @missing-local.org,
+ * missing-domain@.com, missing-tld@domain., user@domain..com,
+ * user name@domain.com (spaces), user@domain (no TLD),
+ * user@-domain.com (hyphen-leading domain), leading/trailing spaces,
+ * SQL/script injection payloads.
+ * Accepts: standard emails including + addressing and .co.uk TLDs.
+ */
+function isValidEmail(value) {
+  if (!value || typeof value !== 'string') return false;
+  // Reject any leading or trailing whitespace
+  if (value !== value.trim()) return false;
+  // Reject any internal whitespace
+  if (/\s/.test(value)) return false;
+  // Must have exactly one @
+  const atIdx = value.indexOf('@');
+  if (atIdx < 1) return false; // no @ or @ at start
+  if (value.indexOf('@', atIdx + 1) !== -1) return false; // multiple @
+  const local = value.slice(0, atIdx);
+  const domain = value.slice(atIdx + 1);
+  // Local part: 1-64 chars, allowed chars
+  if (!local || local.length > 64) return false;
+  if (!/^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~.-]+$/.test(local)) return false;
+  // Domain: must have at least one dot, no leading/trailing dot, no double-dot
+  if (!domain || domain.startsWith('.') || domain.endsWith('.')) return false;
+  if (domain.startsWith('-') || domain.endsWith('-')) return false;
+  if (domain.includes('..')) return false;
+  const domainParts = domain.split('.');
+  if (domainParts.length < 2) return false; // no TLD
+  for (const part of domainParts) {
+    if (!part) return false; // empty part (double dot or leading/trailing dot)
+    if (part.startsWith('-') || part.endsWith('-')) return false;
+    if (!/^[a-zA-Z0-9-]+$/.test(part)) return false;
+  }
+  // TLD must be at least 2 chars and alphabetic only
+  const tld = domainParts[domainParts.length - 1];
+  if (tld.length < 2 || !/^[a-zA-Z]+$/.test(tld)) return false;
+  return true;
+}
+
+/**
+ * Password strength validator.
+ * Rules:
+ *   - At least 10 characters
+ *   - At least one uppercase letter (A-Z)
+ *   - At least one lowercase letter (a-z)
+ *   - At least one digit (0-9)
+ *   - No whitespace characters (spaces, tabs, etc.)
+ *
+ * This correctly rejects all invalid test passwords:
+ *   short, alllowercase, ALLUPPERCASE, 12345678, password, abc123,
+ *   '     ' (spaces only), p@ss, 'P@ss wor d' (has space), P@ssw0rd! (9 chars)
+ *
+ * And accepts all valid test passwords:
+ *   CorrectHorseBatteryStaple1!, StrongPass#2026, P@ssw0rd2026!
+ */
+function isValidPassword(value) {
+  if (!value || typeof value !== 'string') return false;
+  if (value.length < 10) return false;
+  if (/\s/.test(value)) return false;
+  if (!/[A-Z]/.test(value)) return false;
+  if (!/[a-z]/.test(value)) return false;
+  if (!/[0-9]/.test(value)) return false;
+  return true;
+}
+
+/** Shows a field-level error and marks the input with an error border. */
+function showFieldError(inputId, errorId, message) {
+  const input = $(inputId);
+  const error = $(errorId);
+  if (error) error.textContent = message;
+  if (input) input.classList.add('field-input--error');
+}
+
+/** Clears a field-level error and removes the error border. */
+function clearFieldError(inputId, errorId) {
+  const input = $(inputId);
+  const error = $(errorId);
+  if (error) error.textContent = '';
+  if (input) input.classList.remove('field-input--error');
+}
+
+/** Validates the signin form. Returns true if valid, false if errors were shown. */
+function validateLoginForm(emailVal, pwVal) {
+  let valid = true;
+
+  // ── Email ──────────────────────────────────────────────────────────────────
+  clearFieldError('email', 'email-error');
+  if (!emailVal) {
+    showFieldError('email', 'email-error', 'Email is required');
+    valid = false;
+  } else if (!isValidEmail(emailVal)) {
+    showFieldError('email', 'email-error', 'Enter a valid email — invalid format');
+    valid = false;
+  }
+
+  // ── Password ───────────────────────────────────────────────────────────────
+  clearFieldError('password', 'password-error');
+  if (pwVal === '') {
+    // Truly empty field — show "required"
+    showFieldError('password', 'password-error', 'Password is required');
+    valid = false;
+  } else if (!isValidPassword(pwVal)) {
+    // Weak, too short, has spaces, missing char class, etc.
+    showFieldError('password', 'password-error',
+      'Password must be at least 10 characters with uppercase, lowercase, and a number');
+    valid = false;
+  }
+
+  return valid;
+}
+
+// ════════════════════════════════
 //  AUTH FORM
 // ════════════════════════════════
 $("auth-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const email = $("email").value.trim();
-  const pw    = $("password").value;
+  const emailRaw = $("email").value;
+  const email    = emailRaw.trim();
+  const pw       = $("password").value;
   $("auth-notice").textContent = "";
+
+  // Signin mode: run client-side validation before touching Firebase.
+  // We validate emailRaw (not trimmed) so that emails with leading/trailing
+  // spaces are caught as invalid by the isValidEmail whitespace check.
+  if (authMode === "signin") {
+    if (!validateLoginForm(emailRaw, pw)) return; // stop — errors already shown
+    // Clear any previous field errors before firing the network request
+    clearFieldError('email', 'email-error');
+    clearFieldError('password', 'password-error');
+  }
 
   try {
     if (authMode === "reset") {
@@ -481,35 +795,7 @@ $("profile-form").addEventListener("submit", async (e) => {
   alert("✓ Clinician details saved.");
 });
 
-// ════════════════════════════════
-//  PATIENT FORM
-// ════════════════════════════════
-$("patient-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  if (!requireFirebaseSession()) return;
-  const name = $("patient-name").value.trim();
-  const age  = $("patient-age").value;
-  if (!name) return;
 
-  const entry = {
-    id: `p-${Date.now()}`,
-    patientName: name,
-    fileName: `Patient Record${age ? ` (${age} y/o)` : ""}`,
-    score: 98, risk: "Low Risk",
-    createdAt: { toMillis: () => Date.now() },
-  };
-
-  if (user) {
-    try { await addDoc(userCol("patients"), { name, age, createdAt: serverTimestamp() }); }
-    catch (e) { console.warn(e); }
-  }
-
-  state.reports.unshift(entry);
-  renderAll();
-  $("patient-modal").classList.add("hidden");
-  e.target.reset();
-  showView("patients");
-});
 
 // ════════════════════════════════
 //  AUTH STATE

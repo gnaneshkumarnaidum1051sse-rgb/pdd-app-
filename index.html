@@ -36,13 +36,15 @@
       </div>
       <div class="field-group">
         <label class="field-label" for="email">Email address</label>
-        <input id="email" class="field-input" type="email" autocomplete="email" placeholder="doctor@clinic.com" required>
+        <input id="email" class="field-input" type="text" name="email" data-testid="email-input" autocomplete="email" placeholder="doctor@clinic.com" required>
+        <p id="email-error" class="field-error error-message" data-testid="email-error" role="alert" aria-live="polite"></p>
       </div>
       <div id="password-row" class="field-group">
         <label class="field-label" for="password">Password</label>
-        <input id="password" class="field-input" type="password" autocomplete="current-password" placeholder="At least 6 characters" required minlength="6">
+        <input id="password" class="field-input" type="password" name="password" data-testid="password-input" autocomplete="current-password" placeholder="At least 10 characters" required>
+        <p id="password-error" class="field-error error-message" data-testid="password-error" role="alert" aria-live="polite"></p>
       </div>
-      <button id="auth-submit" class="btn-primary" type="submit">Sign in</button>
+      <button id="auth-submit" class="btn-primary" name="login" data-testid="login-button" type="submit">Sign in</button>
     </form>
     <p id="auth-switch" class="auth-switch">
       New to PredictDent? <button class="link-btn" data-auth-mode="signup">Create account</button>
@@ -216,7 +218,6 @@
           <span class="search-icon-txt">🔍</span>
           <input id="patient-search" class="search-input" type="search" placeholder="Search patients or reports…">
         </div>
-        <button id="create-patient" class="btn-primary">+ Add Patient</button>
       </div>
       <div id="patient-list" class="patient-table"></div>
     </section>
@@ -227,7 +228,13 @@
         <div class="scan-upload-card">
           <div class="upload-cloud-icon">☁</div>
           <h2>Upload Medical Report</h2>
-          <p>Scanned medical reports only: PDF, JPG, or PNG</p>
+          <p style="margin-bottom: 20px;">Scanned medical reports only: PDF, JPG, or PNG</p>
+          <div class="field-group" style="width: 100%; max-width: 320px; margin-bottom: 20px; text-align: left;">
+            <label class="field-label" for="scan-patient-select" style="display: block; margin-bottom: 6px;">Select Patient (Optional)</label>
+            <select id="scan-patient-select" class="field-input" style="width: 100%; border-radius: 8px; padding: 12px 16px; height: auto;">
+              <option value="">-- Parse name from filename --</option>
+            </select>
+          </div>
           <label for="scan-file-input" class="btn-primary scan-select-btn">
             ⬆ SELECT REPORT
             <input id="scan-file-input" type="file" accept="application/pdf,image/jpeg,image/png" style="display:none">
@@ -382,25 +389,7 @@
   </div>
 </div>
 
-<div id="patient-modal" class="modal hidden">
-  <div class="modal-card">
-    <div class="modal-header">
-      <h3>Create Patient Record</h3>
-      <button class="modal-close" data-close="patient-modal">✕</button>
-    </div>
-    <form id="patient-form" style="display:grid;gap:16px;margin-top:20px">
-      <div class="field-group">
-        <label class="field-label" for="patient-name">Patient name</label>
-        <input id="patient-name" class="field-input" required placeholder="Jane Doe">
-      </div>
-      <div class="field-group">
-        <label class="field-label" for="patient-age">Age</label>
-        <input id="patient-age" class="field-input" type="number" min="1" max="120" required placeholder="35">
-      </div>
-      <button class="btn-primary" type="submit">Save Patient</button>
-    </form>
-  </div>
-</div>
+
 
 <script type="module" src="./app.js"></script>
 <script>
